@@ -24,11 +24,42 @@ SOFTWARE.
 namespace abstract_container
 {
 
+#ifndef ABSTRACT_CONTAINER_DIRECTIONS_DEFIFINED_
+#define ABSTRACT_CONTAINER_DIRECTIONS_DEFIFINED_
+
 constexpr bool forward = true;
 constexpr bool reverse = false;
 
+#endif
+
+/*
+Bidirectional list intrusive container class template
+
+The 'abstractor' template parameter class must have the following public
+or protected members, or behave as though it does:
+
+type handle -- must be copyable.  Each element to be contained in a list
+  must have a unique value of this type associated with it.
+
+Member functions:
+
+handle null() -- must always return the same value, which is a handle value
+  that is never associated with any element.  The returned value is called
+  the null value.
+
+void link(handle h, handle link_h, bool is_forward) -- causes the handle
+  value link_h to be stored withing the element associated with the
+  handle value h.  The element must be able to store a forward and a
+  reverse link handle.  If is_forward is true, link_h is stored as the
+  forward link handle, otherwise it is stored as the reverse link handle.
+
+handle link(handle h, bool is_forward) -- for the specified direction,
+  must return the stored handle value that was most recently stored in
+  the element associated with handle h by the other the link() member
+  function.
+*/
 template <class abstractor>
-class bidir_list
+class bidir_list : protected abstractor
   {
   public:
 
@@ -45,16 +76,28 @@ class bidir_list
     handle link(handle h, bool is_forward = true)
      { return(abstractor::link(h, is_forward)); }
 
+    // Put the specied element (which must not be part of any list) into
+    // a state that it can only be in when not in any list.
+    //
     void make_detached(handle h) { link(h, h, forward); }
 
+    // Returns true if make_detach() was called for the specified element,
+    // and it has not since been put in any list.
+    //
     bool is_detached(handle h) { return(link(h, forward) == h); }
 
     // FUTURE
     // bidir_list(
     //   bidir_list &to_split, handle first_in_list, handle last_in_list)
 
+    // Returns the handle of first element in the list in the given direction.
+    // Returns the null value if the list is empty.
+    //
     handle start(bool is_forward = true) { return(head[is_forward]); }
 
+    // For the element in_list (already in the list), inserts the element
+    // to_insert after it in the given direction.
+    //
     void insert(handle in_list, handle to_insert, bool is_forward = true)
       {
         handle ilf = link(in_list, is_forward);
@@ -78,6 +121,8 @@ class bidir_list
       }
     #endif
 
+    // Remorves the specified element (initially in the list) from the list.
+    //
     void erase(handle in_list)
       {
         handle f = link(in_list, forward);
@@ -99,6 +144,9 @@ class bidir_list
     // FUTURE
     // void erase(handle first_in_list, handle last_in_list))
 
+    // Make the specified element (not initially in the list) the new first
+    // element in the list, in the specified direction.
+    //
     void push(handle to_push, bool is_forward = true)
       {
         link(to_push, null(), !is_forward);
@@ -115,6 +163,9 @@ class bidir_list
     // FUTURE
     // void push(bidir_list &to_push, bool is_forward = true)
 
+    // Removes and returns the first element (in the given direction) in the
+    // list.
+    //
     handle pop(bool is_forward = true)
       {
         handle p = head[is_forward];
@@ -129,8 +180,12 @@ class bidir_list
         return(p);
       }
 
+    // Returns true if the list is empty.
+    //
     bool empty() { return(head[forward] == null()); }
 
+    // Initialized the list to the empty state.
+    //
     void purge() { head[forward] = null(); head[reverse] = null(); }
 
   private:

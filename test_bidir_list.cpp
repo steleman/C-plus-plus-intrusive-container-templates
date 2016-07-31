@@ -17,9 +17,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// Unit testing for bidir_list.h .
+
 #include "bidir_list.h"
 #include "bidir_list.h"
 
+// Put a breakpoint on this function to break after a check fails.
 void bp() { }
 
 #include <cstdlib>
@@ -45,6 +48,8 @@ const unsigned num_e = 5;
 
 p_bidir_elem e[num_e];
 
+// Purge test list, mark all elements as detached.
+//
 void init()
   {
     bdl.purge();
@@ -53,6 +58,9 @@ void init()
       bdl.make_detached(e + i);
   }
 
+// Check if list structure is sane, and elements of list are in ascending
+// order by address.
+//
 void scan()
   {
     p_bidir_elem *last = nullptr;
