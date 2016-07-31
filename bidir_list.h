@@ -55,8 +55,7 @@ void link(handle h, handle link_h, bool is_forward) -- causes the handle
 
 handle link(handle h, bool is_forward) -- for the specified direction,
   must return the stored handle value that was most recently stored in
-  the element associated with handle h by the other the link() member
-  function.
+  the element associated with handle h by the other link() member function.
 */
 template <class abstractor>
 class bidir_list : protected abstractor
@@ -202,28 +201,23 @@ namespace impl
 
 struct p_bidir_list_abs;
 
-}
-
-class p_bidir_elem
+class p_bidir_list_elem
   {
   public:
 
-    const p_bidir_elem * link(bool is_forward = true) const
+    const p_bidir_list_elem * link(bool is_forward = true) const
       { return(link_[is_forward]); }
 
   private:
 
-    p_bidir_elem *link_[2];
+    p_bidir_list_elem *link_[2];
 
     friend struct impl::p_bidir_list_abs;
   };
 
-namespace impl
-{
-
 struct p_bidir_list_abs
   {
-    typedef p_bidir_elem *handle;
+    typedef p_bidir_list_elem *handle;
 
     static handle null() { return(nullptr); }
 
@@ -234,9 +228,14 @@ struct p_bidir_list_abs
       { h->link_[is_forward] = link_h; }
   };
 
-}
+} // end namespace impl
 
-typedef bidir_list<impl::p_bidir_list_abs> p_bidir_list;
+class p_bidir_list : public bidir_list<impl::p_bidir_list_abs>
+  {
+  public:
+
+    typedef impl::p_bidir_list_elem elem;
+  };
 
 } // end namespace abstract_container
 
