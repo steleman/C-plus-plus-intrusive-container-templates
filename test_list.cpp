@@ -19,8 +19,8 @@ SOFTWARE.
 
 // Unit testing for list.h and bidir_list.h .
 
-#define BIDIR 1
-#define STORE_TAIL true
+#define BIDIR 0
+#define STORE_TAIL false
 
 #if BIDIR
 
@@ -136,11 +136,11 @@ int main()
     lst.insert(e + 2, e + 3); SCAN
     lst.insert(e + 2, e + 1, reverse); SCAN
 
-    lst.erase(e + 2); lst.make_detached(e + 2); SCAN
-    lst.erase(e + 0); lst.make_detached(e + 0); SCAN
-    lst.erase(e + 4); lst.make_detached(e + 4); SCAN
-    lst.erase(e + 3); lst.make_detached(e + 3); SCAN
-    lst.erase(e + 1); lst.make_detached(e + 1); SCAN
+    lst.remove(e + 2); lst.make_detached(e + 2); SCAN
+    lst.remove(e + 0); lst.make_detached(e + 0); SCAN
+    lst.remove(e + 4); lst.make_detached(e + 4); SCAN
+    lst.remove(e + 3); lst.make_detached(e + 3); SCAN
+    lst.remove(e + 1); lst.make_detached(e + 1); SCAN
 
     CHK(lst.empty());
 

@@ -173,7 +173,7 @@ class list : protected abstractor
     // Remorves the specified element (initially in the list) from the list.
     // Linear.
     //
-    void erase(handle in_list)
+    void remove(handle in_list)
       {
         handle f = link(in_list, forward);
         handle r = link(in_list, reverse);
@@ -188,7 +188,7 @@ class list : protected abstractor
       }
 
     // FUTURE
-    // void erase(handle first_in_list, handle last_in_list))
+    // void remove(handle first_in_list, handle last_in_list))
 
     // Make the specified element (not initially in the list) the new first
     // element in the list, in the specified direction.  Linear if direction
