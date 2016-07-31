@@ -42,10 +42,15 @@ namespace abstract_container
 enum search_type
   {
     EQUAL = 1,
+    equal = 1,
     LESS = 2,
+    less = 2,
     GREATER = 4,
-    LESS_EQUAL = EQUAL | LESS,
-    GREATER_EQUAL = EQUAL | GREATER
+    greater = 4,
+    LESS_EQUAL = equal | less,
+    less_equal = equal | less,
+    GREATER_EQUAL = equal | greater,
+    greater_equal = equal | greater
   };
 
 #endif
@@ -105,6 +110,10 @@ class base_avl_tree
 
     base_avl_tree(void) { abs.root = null(); }
 
+    base_avl_tree(const base_avl_tree &) = delete;
+
+    base_avl_tree & operator = (const base_avl_tree &) = delete;
+
     class iter
       {
       public:
@@ -115,7 +124,7 @@ class base_avl_tree
 
 	// Initialize depth to invalid value, to indicate iterator is
 	// invalid.   (Depth is zero-base.)
-	iter(void) { depth = unsigned(~0); }
+	constexpr iter(void) : depth(unsigned(~0)) { }
 
 	void start_iter(base_avl_tree &tree, key k, search_type st = EQUAL)
 	  {
