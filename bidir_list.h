@@ -45,7 +45,7 @@ Member functions:
 
 handle null() -- must always return the same value, which is a handle value
   that is never associated with any element.  The returned value is called
-  the null value.
+  the null value.  Must be a static member.
 
 void link(handle h, handle link_h, bool is_forward) -- causes the handle
   value link_h to be stored withing the element associated with the
@@ -64,7 +64,7 @@ class bidir_list : protected abstractor
 
     typedef typename abstractor::handle handle;
 
-    handle null() { return(abstractor::null()); }
+    static handle null() { return(abstractor::null()); }
 
     bidir_list() : head{ null(), null() } { }
 
