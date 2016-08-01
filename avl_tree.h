@@ -668,8 +668,8 @@ class base_avl_tree
   };
 
 template <class abstractor, unsigned max_depth, class bset>
-inline typename base_avl_tree<abstractor, max_depth, bset>::handle
-  base_avl_tree<abstractor, max_depth, bset>::insert(handle h)
+inline auto base_avl_tree<abstractor, max_depth, bset>::insert(handle h)
+  -> handle
   {
     set_lt(h, null());
     set_gt(h, null());
@@ -790,8 +790,9 @@ inline typename base_avl_tree<abstractor, max_depth, bset>::handle
   }
 
 template <class abstractor, unsigned max_depth, class bset>
-inline typename base_avl_tree<abstractor, max_depth, bset>::handle
+inline auto
   base_avl_tree<abstractor, max_depth, bset>::search(key k, search_type st)
+  -> handle
   {
     const int MASK_HIGH_BIT = (int) ~ ((~ (unsigned) 0) >> 1);
 
@@ -834,8 +835,8 @@ inline typename base_avl_tree<abstractor, max_depth, bset>::handle
   }
 
 template <class abstractor, unsigned max_depth, class bset>
-inline typename base_avl_tree<abstractor, max_depth, bset>::handle
-  base_avl_tree<abstractor, max_depth, bset>::search_least(void)
+inline auto
+  base_avl_tree<abstractor, max_depth, bset>::search_least(void) -> handle
   {
     handle h = abs.root, parent = null();
 
@@ -854,8 +855,8 @@ inline typename base_avl_tree<abstractor, max_depth, bset>::handle
   }
 
 template <class abstractor, unsigned max_depth, class bset>
-inline typename base_avl_tree<abstractor, max_depth, bset>::handle
-  base_avl_tree<abstractor, max_depth, bset>::search_greatest(void)
+inline auto
+  base_avl_tree<abstractor, max_depth, bset>::search_greatest(void) -> handle
   {
     handle h = abs.root, parent = null();
 
@@ -874,8 +875,8 @@ inline typename base_avl_tree<abstractor, max_depth, bset>::handle
   }
 
 template <class abstractor, unsigned max_depth, class bset>
-inline typename base_avl_tree<abstractor, max_depth, bset>::handle
-  base_avl_tree<abstractor, max_depth, bset>::remove(key k)
+inline auto
+  base_avl_tree<abstractor, max_depth, bset>::remove(key k) -> handle
   {
     // Zero-based depth in tree.
     unsigned depth = 0, rm_depth;
@@ -1074,8 +1075,8 @@ inline typename base_avl_tree<abstractor, max_depth, bset>::handle
   }
 
 template <class abstractor, unsigned max_depth, class bset>
-inline typename base_avl_tree<abstractor, max_depth, bset>::handle
-  base_avl_tree<abstractor, max_depth, bset>::subst(handle new_node)
+inline auto
+  base_avl_tree<abstractor, max_depth, bset>::subst(handle new_node) -> handle
   {
     handle h = abs.root;
     handle parent = null();
