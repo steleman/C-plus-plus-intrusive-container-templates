@@ -170,6 +170,19 @@ class list : protected abstractor
       }
     #endif
 
+    // Remorves the next elemment forward from specified element from the list.
+    //
+    void remove_forward(handle in_list)
+      {
+        handle f = link(in_list);
+        handle ff = link(f);
+
+        link(in_list, ff);
+
+        if (store_tail and (ff == null()))
+          tail() = in_list;
+      }
+
     // Remorves the specified element (initially in the list) from the list.
     // Linear.
     //
