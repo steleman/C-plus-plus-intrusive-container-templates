@@ -45,16 +45,16 @@ class hash_table : protected abstractor
 
     hash_table & operator = (const hash_table &) = delete;
 
-    inline index hash_key(key k) { return(abstractor::hash_key(k)); }
+    index hash_key(key k) { return(abstractor::hash_key(k)); }
 
-    inline index hash_elem(handle h) { return(abstractor::hash_elem(h)); }
+    index hash_elem(handle h) { return(abstractor::hash_elem(h)); }
 
-    inline handle insert(handle h, index hash_value)
+    void insert(handle h, index hash_value)
       { bucket(hash_value).push(h); }
 
-    handle insert(handle h) { return(insert(h, hash_elem(h))); }
+    void insert(handle h) { insert(h, hash_elem(h)); }
 
-    inline handle search(key k, index hash_value)
+    handle search(key k, index hash_value)
       {
         list &b = bucket(hash_value);
         handle h = b.start();
@@ -67,7 +67,7 @@ class hash_table : protected abstractor
 
     handle search(key k) { return(search(k, hash_key(k))); }
 
-    inline handle remove_key(key k)
+    handle remove_key(key k)
       {
         list &b = bucket(hash_key(k));
         handle h = b.start();
@@ -90,15 +90,15 @@ class hash_table : protected abstractor
         return(h);
       }
 
-    inline void remove(handle h) { bucket(hash_elem(h)).remove(h); }
+    void remove(handle h) { bucket(hash_elem(h)).remove(h); }
 
-    inline void purge(void)
+    void purge(void)
       {
         for (index i = 0; i < num_hash_values; ++i)
           bucket(i).purge();
       }
 
-    handle null(void) { return(list::null()); }
+    static handle null(void) { return(list::null()); }
 
 #if 0
     class iter

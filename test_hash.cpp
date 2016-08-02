@@ -44,9 +44,24 @@ void check(bool expr, int line)
 
 using namespace abstract_container;
 
-struct Elem { int key; Elem *link; };
+const unsigned Num_elem = 30;
 
-Elem e[10];
+const unsigned Num_buckets = 10;
+
+struct Elem
+  {
+    int key;
+    Elem *link;
+
+    static const unsigned Bad_key = Num_buckets * 10;
+
+    void make_detached() { key = Bad_key; link = this; }
+
+    bool is_detached() const
+      { return((key == Bad_key) and (link == this)); }
+  };
+
+Elem e[30];
 
 class Abs
   {
@@ -66,7 +81,7 @@ class Abs
     typedef abstract_container::list<List_abs> list;
     typedef unsigned index;
 
-    static const index num_hash_values = 10;
+    static const index num_hash_values = Num_buckets;
 
   private:
 
@@ -78,61 +93,102 @@ class Abs
 
     list & bucket(index hash_value) { return(table[hash_value]); }
 
-    bool is_key(key k, list::handle h) { return(h->key == k); }
+    bool is_key(key k, Elem *h) { return(h->key == k); }
+
+    index hash_key(key k) { return(k / 10); }
+
+    index hash_elem(Elem *h) { return(h->key / 10); }
   };
 
 struct Ht : public hash_table<Abs>
   {
+    typedef list p_list;
+
+    p_list & p_bucket(index hash_value) { return(bucket(hash_value)); }
   };
 
 Ht ht;
 
-#if 0
-
-// Purge test list, mark all elements as detached.
+// Mark all elements as detached.
 //
-void init()
+void detach_all()
   {
-    lst.purge();
+    ht.purge();
 
-    for (unsigned i = 0; i < num_e; ++i)
-      lst.make_detached(e + i);
+    for (unsigned i = 0; i < Num_elem; ++i)
+      e[i].make_detached();
   }
 
-// Check if list structure is sane, and elements of list are in ascending
-// order by address.
+// Check if hash table is sane.
 //
 void scan()
   {
-    elem_t *last = nullptr;
-
-    for (unsigned i = 0; i < num_e; ++i)
-      if (!lst.is_detached(e + i))
+    for (unsigned i = 0; i < Num_elem; ++i)
+      if (!e[i].is_detached())
         {
-          #if BIDIR
-          CHK(lst.link(e + i, reverse) == last);
-          #endif
-          if (last)
-            CHK(lst.link(last) == (e + i));
-          else
-            CHK(lst.start() == (e + i));
-          last = e + i;
+          CHK(e[i].key < int(10 * Num_buckets));
+
+          Ht::p_list & b = ht.p_bucket(e[i].key / 10);
+
+          Elem *ep = b.start();
+
+          for ( ; ; )
+            {
+              CHK(ep != Ht::null());
+
+              if (ep == (e + i))
+                break;
+
+              ep = b.link(ep);
+            }
+
+          CHK(ht.search(e[i].key) == (e + i));
         }
 
-    CHK(lst.start(reverse) == last);
-    CHK(lst.empty() == (last == nullptr));
-    if (last)
-      CHK(lst.link(last) == nullptr); 
-    else
-      CHK(lst.start() == nullptr);
-  }
+  } // end scan()
 
 #define SCAN { std::cout << "SCAN line " << __LINE__ << std::endl; scan(); }
 
-#endif
-
 int main()
   {
+    detach_all(); SCAN
+
+    e[0].key = 1;
+    ht.insert(e + 0);
+    SCAN
+    e[1].key = 20;
+    ht.insert(e + 1);
+    SCAN
+    e[2].key = 30;
+    ht.insert(e + 2);
+    SCAN
+    e[3].key = 50;
+    ht.insert(e + 3);
+    SCAN
+    e[4].key = 70;
+    ht.insert(e + 4);
+    SCAN
+    ht.remove(e + 3);
+    e[3].make_detached();
+    SCAN
+    e[3].key = 50;
+    ht.insert(e + 3);
+    SCAN
+    e[5].key = 51;
+    ht.insert(e + 5);
+    SCAN
+    e[6].key = 52;
+    ht.insert(e + 6);
+    SCAN
+    ht.remove_key(51);
+    e[5].make_detached();
+    SCAN
+    ht.remove_key(50);
+    e[3].make_detached();
+    SCAN
+    ht.remove_key(52);
+    e[6].make_detached();
+    SCAN
 
     return(0);
   }
