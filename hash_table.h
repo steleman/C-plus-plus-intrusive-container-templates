@@ -21,10 +21,41 @@ SOFTWARE.
 #ifndef ABSTRACT_CONTAINER_HASH_TABLE_H_
 #define ABSTRACT_CONTAINER_HASH_TABLE_H_
 
+#include "list.h"
+
 namespace abstract_container
 {
 
 // Abstract hash table template.
+//
+// abstractor parameter class must have these public members, or equivalents:
+//
+// Types:
+//
+// list -- normally an instantiation of the abstract_container::list type.
+//   Must have the members handle, start, push, remove, link, null, purge.
+//   Must have a paremeterless constructor that initializes it to the empty
+//   state.
+// index -- an integral type.
+// key -- some copyable type.
+//
+// Member functions:
+//
+// index hash_key(key) -- returns the hash value of the given key.
+// index hash_elem(handle) -- returns hash value of the key of the list
+//   element associated with the given handle.  Each list element placed into
+//   the hash table must be associated with a unique handle value.  Each
+//   list element place into the hash table must be associated with a unique
+//   key value.
+// list & bucket(index) -- returns the list to use as a bucket to store
+//   each element in the table with the given hash value.
+// bool is_key(index, handle) -- returns true if the first parameter is
+//   the key of the element whose handle is the second parameter.
+//
+// Static constants:
+//
+// static const index num_hash_values -- the maximum number of hash values
+//   of keys (with zero being the minimum).
 //
 template <class abstractor>
 class hash_table : protected abstractor
@@ -45,6 +76,12 @@ class hash_table : protected abstractor
 
     hash_table & operator = (const hash_table &) = delete;
 
+    // It may be that you will want to search for a key, and if it is
+    // not present, allocate a node for the key and insert it.  Hence
+    // the encapsulation foul of being able to pass the hash value for
+    // a key to some member functions, to avoid unecessary recalculation
+    // of the hash value.
+
     index hash_key(key k) { return(abstractor::hash_key(k)); }
 
     index hash_elem(handle h) { return(abstractor::hash_elem(h)); }
@@ -54,6 +91,7 @@ class hash_table : protected abstractor
 
     void insert(handle h) { insert(h, hash_elem(h)); }
 
+    // Returns null() if no element has key k.
     handle search(key k, index hash_value)
       {
         list &b = bucket(hash_value);
@@ -67,6 +105,8 @@ class hash_table : protected abstractor
 
     handle search(key k) { return(search(k, hash_key(k))); }
 
+    // Returns the handle of the removed element, or null() is no element
+    // has key k.
     handle remove_key(key k)
       {
         list &b = bucket(hash_key(k));
@@ -92,6 +132,7 @@ class hash_table : protected abstractor
 
     void remove(handle h) { bucket(hash_elem(h)).remove(h); }
 
+    // Make the hash table empty.
     void purge()
       {
         for (index i = 0; i < num_hash_values; ++i)
@@ -100,6 +141,9 @@ class hash_table : protected abstractor
 
     static handle null() { return(list::null()); }
 
+    // Note:  removing an element invalidates iterators referencing it,
+    // but no others.
+    //
     class iter
       {
       public:
@@ -116,6 +160,9 @@ class hash_table : protected abstractor
 
         iter(hash_table &ht_) { start_iter(ht_); }
 
+        // Returns handle of element currently referenced by iterator, or
+        // null() if the iterator is past the last element (if any).
+        //
 	handle operator * () { return(curr_h); }
 
 	operator bool () { return(curr_h != hash_table::null()); }
