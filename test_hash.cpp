@@ -209,5 +209,21 @@ int main()
     detach_all();
     SCAN
 
+    unsigned idx = 0;
+
+    #define I(K) e[idx].key = (K); ht.insert(e + (idx++)); SCAN
+
+    I(11)
+    I(12)
+    I(31)
+    I(32)
+    I(33)
+    I(81)
+    I(82)
+    I(1)
+    I(2)
+    I(91)
+    I(92)
+
     return(0);
   }
