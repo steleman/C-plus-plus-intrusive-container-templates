@@ -213,7 +213,8 @@ class list : protected abstractor
           {
             link(to_push, null());
             head() = to_push;
-            tail() = to_push;
+            if (store_tail)
+              tail() = to_push;
           }
         else if (is_forward)
           {

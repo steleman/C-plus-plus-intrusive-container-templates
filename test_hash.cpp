@@ -123,9 +123,13 @@ void detach_all()
 //
 void scan()
   {
+    unsigned cnt = 0;
+
     for (unsigned i = 0; i < Num_elem; ++i)
       if (!e[i].is_detached())
         {
+          ++cnt;
+
           CHK(e[i].key < int(10 * Num_buckets));
 
           Ht::p_list & b = ht.p_bucket(e[i].key / 10);
@@ -144,6 +148,17 @@ void scan()
 
           CHK(ht.search(e[i].key) == (e + i));
         }
+
+    unsigned icnt = 0;
+
+    for (Ht::iter it(ht); it; ++it)
+      {
+        ++icnt;
+
+        CHK(!(*it)->is_detached());
+      }
+
+    CHK(cnt == icnt);
 
   } // end scan()
 
@@ -188,6 +203,10 @@ int main()
     SCAN
     ht.remove_key(52);
     e[6].make_detached();
+    SCAN
+
+    ht.purge();
+    detach_all();
     SCAN
 
     return(0);

@@ -92,93 +92,65 @@ class hash_table : protected abstractor
 
     void remove(handle h) { bucket(hash_elem(h)).remove(h); }
 
-    void purge(void)
+    void purge()
       {
         for (index i = 0; i < num_hash_values; ++i)
           bucket(i).purge();
       }
 
-    static handle null(void) { return(list::null()); }
+    static handle null() { return(list::null()); }
 
-#if 0
     class iter
       {
       public:
 
-	void start_iter(hash_table &ht, key k)
+	void start_iter(hash_table &ht_)
 	  {
-	    // Mask of high bit in an int.
-	    const int MASK_HIGH_BIT = (int) ~ ((~ (unsigned) 0) >> 1);
+	    ht = &ht_;
 
-	    // Save the tree that we're going to iterate through in a
-	    // member variable.
-	    tree_ = &tree;
+            hv = index(0) - 1;
+            curr_h = hash_table::null();
 
-	    int cmp, target_cmp;
-	    handle h = tree_->abs.root;
-	    unsigned d = 0;
-
-	    depth = unsigned(~0);
-
-	    if (h == null())
-	      // Tree is empty.
-	      return;
-
-	    if (st & LESS)
-	      // Key can be greater than key of starting node.
-	      target_cmp = 1;
-	    else if (st & GREATER)
-	      // Key can be less than key of starting node.
-	      target_cmp = -1;
-	    else
-	      // Key must be same as key of starting node.
-	      target_cmp = 0;
-
-	    for ( ; ; )
-	      {
-		cmp = cmp_k_n(k, h);
-		if (cmp == 0)
-		  {
-		    if (st & EQUAL)
-		      {
-			// Equal node was sought and found as starting node.
-			depth = d;
-			break;
-		      }
-		    cmp = -target_cmp;
-		  }
-		else if (target_cmp != 0)
-		  if (!((cmp ^ target_cmp) & MASK_HIGH_BIT))
-		    // cmp and target_cmp are both negative or both positive.
-		    depth = d;
-		h = cmp < 0 ? get_lt(h) : get_gt(h);
-		if (read_error())
-		  {
-		    depth = unsigned(~0);
-		    break;
-		  }
-		if (h == null())
-		  break;
-		branch[d] = cmp > 0;
-		path_h[d++] = h;
-	      }
+            advance();
 	  }
 
-	handle operator * (void)
-	  {
-	  }
+        iter(hash_table &ht_) { start_iter(ht_); }
 
-	void operator ++ (void)
+	handle operator * () { return(curr_h); }
+
+	operator bool () { return(curr_h != hash_table::null()); }
+
+	hash_table & table() { return(*ht); }
+
+	void operator ++ () { advance(); }
 
 	void operator ++ (int) { ++(*this); }
 
       protected:
 
 	// Hash table being iterated over.
-	hash_table *ht_;
+	hash_table *ht;
 
+        // Hash value, current bucket.
+        index hv;
+
+        // Handle of current element.
+        handle curr_h;
+
+        void advance()
+          {
+            if (curr_h != hash_table::null())
+              curr_h = ht->bucket(hv).link(curr_h);
+
+            while (curr_h == hash_table::null())
+              {
+                if (++hv >= hash_table::num_hash_values)
+                  break;
+
+                curr_h = ht->bucket(hv).start();
+              }
+          }
       };
-#endif
 
   protected:
 
