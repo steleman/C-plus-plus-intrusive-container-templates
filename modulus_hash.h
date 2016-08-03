@@ -21,11 +21,46 @@ SOFTWARE.
 #ifndef ABSTRACT_CONTAINER_MODULUS_HASH_H_
 #define ABSTRACT_CONTAINER_MODULUS_HASH_H_
 
-// Modulus hash of keys of arbitrary length.
+/*
+Modulus hash of long-length keys.
+
+Implementation Strategy
+
+The key to hash must consist of segments of a fixed number of bits.  The
+key can be thought of as a high-precision number given by this sum:
+
+S(0) + S(1) * (2 ** Sbits) + ... + S(n) * (2 ** (Sbits * n))
+
+S(i) means segment number i.  Sbits is the bit width of each segment.  The
+modulus hash MH is given by the recusive formula:
+
+MH(n) = ((S(n) * ((2 ** (Sbits * n)) mod M)) + M(n - 1)) mod M
+
+with M(0) = S(0) mod M .  M is the modulus.
+*/
 
 namespace abstract_container
 {
 
+// Calculate a segment coefficient for key modulus hash calculation.
+//
+// Required public members (or equivalents) of traits class parameter:
+//
+// Types:
+// modulus_t -- an integral type with enough precision to hold the modulus
+//   value.
+// product_v -- and integral type.  The bit width must be at least 1 more than
+//   the sum of the bit width needed to hold the modulus value, plus
+//   the bit width of one key segment.
+//
+// Constants:
+// static const unsigned key_segment_bits -- number of bits in each key
+//   segment
+// static const modulus_t modulus -- the modulus for the hash.
+//
+// The template parameter key_segment gives the 0-base number of the
+// key segment to provide the coefficient for.
+//
 template <class traits, unsigned key_segment>
 class modulus_hash_coeff
   {
@@ -60,6 +95,27 @@ class modulus_hash_coeff<traits, 0>
 namespace impl
 {
 
+// Helper template for calculating modulus hash.
+//
+// The traits class template parameter must have the public members it
+// needs for modulus_hash_coeff, plus the following:
+//
+// Type:
+// key -- the type of the key to take the modulus hash of.
+//
+// Constant:
+// static const unsigned num_key_segments -- the maximum number of segments
+//   in a key.
+//
+// Template:
+// template <unsigned key_segment> static it get(key k) -- returns the key
+//   segment whose 0-base number is key_segment from the key k.  'it' means
+//   some integral type large enough to hold the segment.
+//
+// reverse_key_segment should be num_key_segments minus one, in the first
+// call to a member function of this templeted class, which starts the
+// template recursion.
+//
 template <class traits, unsigned reverse_key_segment>
 class modulus_hash
   {
@@ -71,6 +127,9 @@ class modulus_hash
     static const unsigned key_segment =
       traits::num_key_segments - 1 - reverse_key_segment;
 
+    // Call this function when the number of segments to hash is
+    // equal to num_key_segments
+    //
     static modulus_t val(typename traits::key k)
       {
         return(
@@ -80,6 +139,11 @@ class modulus_hash
           traits::modulus);
       }
 
+    // Call this function when the number of segments to hash is
+    // less than num_key_segments.  The number of segments is given
+    // by key_seg_count.  The hash is preformed on the lowest-numbered
+    // segments.
+    //
     static modulus_t val(typename traits::key k, unsigned key_seg_count)
       {
         product_t prod =
@@ -117,12 +181,19 @@ class modulus_hash<traits, 0>
 
 } // end namespace impl
 
+// Hash all key segments.  'traits' has the same requirements as for
+// the impl::modulus_hash template.
+//
 template<class traits>
 typename traits::modulus_t modulus_hash(typename traits::key k)
   {
     return(impl::modulus_hash<traits, traits::num_key_segments - 1>::val(k));
   }
 
+// Hash some of the key segments, starting with segment 0, with the number
+// of segments hash given by the second parameter.  'traits' has the same
+// requirements as for the impl::modulus_hash template.
+//
 template<class traits>
 typename traits::modulus_t modulus_hash(
   typename traits::key k, unsigned key_segments_count)
