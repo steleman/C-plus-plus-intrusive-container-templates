@@ -50,9 +50,13 @@ struct Tr
 
 const unsigned Num_keys = 1000;
 
+const unsigned Min_segs = 3;
+
 uint16_t data[Tr::num_key_segments];
 
 unsigned hist[Tr::modulus];
+
+#define LAST_ONLY 1
 
 int main()
   {
@@ -63,7 +67,10 @@ int main()
       {
         for (unsigned j = 0; j < Tr::num_key_segments; ++j)
           {
-            data[j] = prod;
+            if ((j == (Tr::num_key_segments - 1)) or !LAST_ONLY)
+              data[j] = prod;
+            else
+              data[j] = 0;
             prod *= Gen;
           }
 
@@ -71,6 +78,42 @@ int main()
       }
 
     unsigned ttl = 0;
+    for (unsigned i = 0; i < Tr::modulus; ++i)
+      {
+        cout << hist[i] << endl;
+        ttl += hist[i];
+      }
+    cout << ttl << endl;
+
+    cout << "===================" << endl;
+
+    prod = Gen;
+
+    for (unsigned i = 0; i < Tr::modulus; ++i)
+      hist[i] = 0;
+
+    unsigned seg_count = Min_segs;
+
+    for (unsigned i = 0; i < Num_keys; ++i)
+      {
+        for (unsigned j = 0; j < seg_count; ++j)
+          {
+            if ((j == (seg_count - 1)) or !LAST_ONLY)
+              data[j] = prod;
+            else
+              data[j] = 0;
+            prod *= Gen;
+          }
+
+        ++hist[modulus_hash<Tr>(data, seg_count)];
+
+        if (seg_count == Tr::num_key_segments)
+          seg_count = Min_segs;
+        else
+          ++seg_count;
+      }
+
+    ttl = 0;
     for (unsigned i = 0; i < Tr::modulus; ++i)
       {
         cout << hist[i] << endl;

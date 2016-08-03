@@ -79,6 +79,21 @@ class modulus_hash
            modulus_hash<traits, reverse_key_segment - 1>::val(k)) %
           traits::modulus);
       }
+
+    static modulus_t val(typename traits::key k, unsigned key_seg_count)
+      {
+        product_t prod =
+          product_t(traits::template get_segment<key_segment>(k)) *
+          modulus_hash_coeff<traits, key_segment>::val;
+
+        if (key_seg_count == 1)
+          return(prod % traits::modulus);
+
+        return(
+          (prod +
+           modulus_hash<traits, reverse_key_segment - 1>::val(
+             k, key_seg_count - 1)) % traits::modulus);
+      }
   };
 
 template <class traits>
@@ -91,7 +106,7 @@ class modulus_hash<traits, 0>
 
     static const unsigned key_segment = traits::num_key_segments - 1;
 
-    static modulus_t val(typename traits::key k)
+    static modulus_t val(typename traits::key k, unsigned = 0)
       {
         return(
           (product_t(traits::template get_segment<key_segment>(k)) *
@@ -106,6 +121,15 @@ template<class traits>
 typename traits::modulus_t modulus_hash(typename traits::key k)
   {
     return(impl::modulus_hash<traits, traits::num_key_segments - 1>::val(k));
+  }
+
+template<class traits>
+typename traits::modulus_t modulus_hash(
+  typename traits::key k, unsigned key_segments_count)
+  {
+    return(
+      impl::modulus_hash<traits, traits::num_key_segments - 1>::val(
+        k, key_segments_count));
   }
 
 } // end namespace abstract_container
