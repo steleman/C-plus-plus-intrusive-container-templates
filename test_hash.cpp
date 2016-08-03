@@ -83,15 +83,7 @@ class Abs
 
     static const index num_hash_values = Num_buckets;
 
-  private:
-
-    list table[num_hash_values];
-
-  protected:
-
     typedef int key;
-
-    list & bucket(index hash_value) { return(table[hash_value]); }
 
     bool is_key(key k, Elem *h) { return(h->key == k); }
 

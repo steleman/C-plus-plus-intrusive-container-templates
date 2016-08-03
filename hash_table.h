@@ -26,7 +26,7 @@ SOFTWARE.
 namespace abstract_container
 {
 
-// Abstract hash table template.
+// Base abstract hash table template.
 //
 // abstractor parameter class must have these public members, or equivalents:
 //
@@ -34,8 +34,6 @@ namespace abstract_container
 //
 // list -- normally an instantiation of the abstract_container::list type.
 //   Must have the members handle, start, push, remove, link, null, purge.
-//   Must have a paremeterless constructor that initializes it to the empty
-//   state.
 // index -- an integral type.
 // key -- some copyable type.
 //
@@ -48,7 +46,8 @@ namespace abstract_container
 //   list element place into the hash table must be associated with a unique
 //   key value.
 // list & bucket(index) -- returns the list to use as a bucket to store
-//   each element in the table with the given hash value.
+//   each element in the table with the given hash value.  lists must
+//   initially be in empty (purged) state.
 // bool is_key(index, handle) -- returns true if the first parameter is
 //   the key of the element whose handle is the second parameter.
 //
@@ -58,7 +57,7 @@ namespace abstract_container
 //   of keys (with zero being the minimum).
 //
 template <class abstractor>
-class hash_table : protected abstractor
+class base_hash_table : protected abstractor
   {
   protected:
 
@@ -70,11 +69,11 @@ class hash_table : protected abstractor
     typedef typename abstractor::key key;
     typedef typename list::handle handle;
 
-    hash_table() = default;
+    base_hash_table() = default;
 
-    hash_table(const hash_table &) = delete;
+    base_hash_table(const base_hash_table &) = delete;
 
-    hash_table & operator = (const hash_table &) = delete;
+    base_hash_table & operator = (const base_hash_table &) = delete;
 
     // It may be that you will want to search for a key, and if it is
     // not present, allocate a node for the key and insert it.  Hence
@@ -148,26 +147,26 @@ class hash_table : protected abstractor
       {
       public:
 
-	void start_iter(hash_table &ht_)
+	void start_iter(base_hash_table &ht_)
 	  {
 	    ht = &ht_;
 
             hv = index(0) - 1;
-            curr_h = hash_table::null();
+            curr_h = base_hash_table::null();
 
             advance();
 	  }
 
-        iter(hash_table &ht_) { start_iter(ht_); }
+        iter(base_hash_table &ht_) { start_iter(ht_); }
 
         // Returns handle of element currently referenced by iterator, or
         // null() if the iterator is past the last element (if any).
         //
 	handle operator * () { return(curr_h); }
 
-	operator bool () { return(curr_h != hash_table::null()); }
+	operator bool () { return(curr_h != base_hash_table::null()); }
 
-	hash_table & table() { return(*ht); }
+	base_hash_table & table() { return(*ht); }
 
 	void operator ++ () { advance(); }
 
@@ -176,7 +175,7 @@ class hash_table : protected abstractor
       protected:
 
 	// Hash table being iterated over.
-	hash_table *ht;
+	base_hash_table *ht;
 
         // Hash value, current bucket.
         index hv;
@@ -186,12 +185,12 @@ class hash_table : protected abstractor
 
         void advance()
           {
-            if (curr_h != hash_table::null())
+            if (curr_h != base_hash_table::null())
               curr_h = ht->bucket(hv).link(curr_h);
 
-            while (curr_h == hash_table::null())
+            while (curr_h == base_hash_table::null())
               {
-                if (++hv >= hash_table::num_hash_values)
+                if (++hv >= base_hash_table::num_hash_values)
                   break;
 
                 curr_h = ht->bucket(hv).start();
@@ -207,6 +206,32 @@ class hash_table : protected abstractor
 
     bool is_key(key k, handle h) { return(abstractor::is_key(k, h)); }
   };
+
+namespace impl
+{
+
+template <class abstractor>
+class hash_table_abs : protected abstractor
+  {
+  private:
+
+    typename abstractor::list table[abstractor::num_hash_values];
+
+  protected:
+
+    typename abstractor::list & bucket(
+      typename abstractor::index hash_value)
+      { return(table[hash_value]); }
+  };
+
+}
+
+// Abstractor parameter has same requirements as for the base_hash_table
+// template, with the additional requirement that the list class must have
+// a parameterless constructor that initialized it to the empty state.
+//
+template <class abstractor>
+using hash_table = base_hash_table<impl::hash_table_abs<abstractor> >;
 
 } // end namespace abstract_container
 
