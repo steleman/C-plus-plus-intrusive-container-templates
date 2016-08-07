@@ -144,6 +144,8 @@ struct Tr2
   };
 
 // Warning: this code will not work on a big-endian CPU.
+// For big endian, hash would have to be calculated over byte-reversed
+// key (0x88887777666655554444333322221111). 
 void second_test()
   {
     const uint64_t k =
@@ -151,9 +153,8 @@ void second_test()
 
     const unsigned m1 = unsigned(k % Tr2::modulus);
 
+    // Zero high 8 bits.
     const unsigned m2 = unsigned(((k << 8) >> 8) % Tr2::modulus);
-    // For big-endian:
-    // const unsigned m2 = unsigned((k >> 8) % Tr2::modulus);
 
     const unsigned h1 = modulus_hash<Tr2>(k);
 
