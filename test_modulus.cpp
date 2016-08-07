@@ -26,6 +26,8 @@ SOFTWARE.
 #include <iostream>
 #include <cstdint>
 
+void second_test();
+
 using std::uint8_t;
 using std::uint16_t;
 using std::uint32_t;
@@ -121,5 +123,42 @@ int main()
       }
     cout << ttl << endl;
 
+    second_test();
+
     return(0);
+  }
+
+struct Tr2
+  {
+    typedef uint8_t modulus_t;
+    typedef uint16_t product_t;
+
+    static const unsigned key_segment_bits = 8;
+    static const unsigned num_key_segments = 8;
+    static const modulus_t modulus = 13 * 13;
+
+    typedef const uint64_t key;
+
+    template<unsigned Key_segment> static uint8_t get_segment(key k)
+      { return(k >> (Key_segment * key_segment_bits)); }
+  };
+
+// Warning: this code will not work on a big-endian CPU.
+void second_test()
+  {
+    const uint64_t k =
+      (uint64_t(0x1111222233334444) << 32) + 0x5555666677778888;
+
+    const unsigned m1 = unsigned(k % Tr2::modulus);
+
+    const unsigned m2 = unsigned(((k << 8) >> 8) % Tr2::modulus);
+    // For big-endian:
+    // const unsigned m2 = unsigned((k >> 8) % Tr2::modulus);
+
+    const unsigned h1 = modulus_hash<Tr2>(k);
+
+    const unsigned h2 = modulus_hash<Tr2>(k, 7);
+
+    if (m1 != h1) cout << "FAIL 1\n";
+    if (m2 != h2) cout << "FAIL 2\n";
   }
