@@ -17,7 +17,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Unit testing for circ_que.h .
+// Unit testing for circ_que.h (single thread only).
 
 #include "circ_que.h"
 #include "circ_que.h"
@@ -40,22 +40,107 @@ void check(bool expr, int line)
 
 #define CHK(EXPR) check((EXPR), __LINE__)
 
-#if 0
+using namespace abstract_container;
 
-struct A { int i, j; };
+const unsigned Max_elems = 5;
 
-struct B { int m, n; A a; };
+typedef basic_circ_que<int, Max_elems> bcq_t;
+
+struct One_test
+  {
+    bcq_t cq;
+
+    circ_que_front<bcq_t> cqf;
+    circ_que_back<bcq_t> cqb;
+
+    int in_val, out_val;
+
+    unsigned size;
+
+    void sane()
+      {
+        CHK(cqf.size() == size);
+        CHK(cqf.is_empty() == (size == 0));
+
+        CHK(cqb.size() == size);
+        CHK(cqb.is_full() == (size == bcq_t::max_size));
+
+        if (size)
+          {
+            CHK(cqf() == out_val);
+            CHK(cqf(size - 1) == in_val);
+          }
+      }
+
+
+    One_test(unsigned push, unsigned pop, unsigned push2) : cqf(cq), cqb(cq)
+      {
+        in_val = 10;
+        out_val = 10;
+        size = 0;
+
+        sane();
+
+        for (unsigned i = 0; i < push; ++i)
+          {
+            cqb() = in_val;
+            cqb.push(raw);
+            ++size;
+
+            sane();
+
+            in_val += 10;
+          }
+
+        in_val -= 10;
+
+        for (unsigned i = 0; i < pop; ++i)
+          {
+            cqf.pop(raw);
+            --size;
+            out_val += 10;
+
+            sane();
+          }
+
+        in_val += 10;
+
+        for (unsigned i = 0; i < push2; ++i)
+          {
+            cqb() = in_val;
+            cqb.push(raw);
+            ++size;
+
+            sane();
+
+            in_val += 10;
+          }
+
+        in_val -= 10;
+
+        pop = push - pop + push2;
+
+        for (unsigned i = 0; i < pop; ++i)
+          {
+            cqf.pop(raw);
+            --size;
+            out_val += 10;
+
+            sane();
+          }
+
+        CHK(size == 0);
+      }
+  };
 
 int main()
   {
-    B b;
-
-    CHK(&b == ABSTRACT_CONTAINER_MBR_TO_CLS_PTR(B, m, &b.m));
-    CHK(&b == ABSTRACT_CONTAINER_MBR_TO_CLS_PTR(B, n, &b.n));
-    CHK(&b == ABSTRACT_CONTAINER_MBR_TO_CLS_PTR(B, a.i, &b.a.i));
-    CHK(&b == ABSTRACT_CONTAINER_MBR_TO_CLS_PTR(B, a.j, &b.a.j));
-    CHK(&b.a == ABSTRACT_CONTAINER_MBR_TO_CLS_PTR(A, j, &b.a.j));
+    for (unsigned push = 0; push <= Max_elems; ++push)
+      for (unsigned pop = 0; pop <= push; ++pop)
+        for (unsigned push2 = 0; push2 <= (Max_elems - push + pop); ++push2)
+          {
+            One_test(push, pop, push2);
+          }
 
     return(0);
   }
-#endif
