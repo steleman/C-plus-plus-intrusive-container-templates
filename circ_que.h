@@ -21,6 +21,9 @@ SOFTWARE.
 #ifndef ABSTRACT_CONTAINER_CIRC_QUE_H_
 #define ABSTRACT_CONTAINER_CIRC_QUE_H_
 
+#include <new>
+#include <utility>
+
 namespace abstract_container
 {
 
@@ -179,16 +182,28 @@ class circ_que_back
 
     elem_t & operator () () { return(cq[cq.produce_next_in()]); }
 
-    void push(raw_t)
+    void push(raw_t) { push_(cq.produce_next_in()); }
+
+    template<typename ... args_t>
+    void push(args_t && ... args)
       {
-        unsigned ni = cq.produce_next_in() + 1;
+        unsigned ni = cq.produce_next_in();
+
+        new(&cq[ni]) elem_t(std::forward<args_t>(args)...);
+
+        push_(ni);
+      }
+
+  private:
+
+    void push_(unsigned ni)
+      {
+        ++ni;
 
         cq.produce_next_in(ni == cq_t::dimension ? 0 : ni);
 
         cq.end_empty_wait();
       }
-
-  private:
 
     cq_t &cq;
 
@@ -225,6 +240,9 @@ class circ_que_abs_basic
 template <typename elem_t, unsigned max_num_elems, typename index_t = unsigned>
 using basic_circ_que =
   circ_que<circ_que_abs_basic<elem_t, max_num_elems, index_t> >;
+
+// Note:  This is not an intrusive, non-copying container.  I just
+// put it here rather than putting it in it's own small repo.
 
 } // end namespace abstract_container
 

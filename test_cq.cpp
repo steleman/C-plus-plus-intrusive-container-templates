@@ -83,8 +83,13 @@ struct One_test
 
         for (unsigned i = 0; i < push; ++i)
           {
-            cqb() = in_val;
-            cqb.push(raw);
+            if (size & 1)
+              {
+                cqb() = in_val;
+                cqb.push(raw);
+              }
+            else
+              cqb.push(in_val);
             ++size;
 
             sane();
@@ -96,7 +101,10 @@ struct One_test
 
         for (unsigned i = 0; i < pop; ++i)
           {
-            cqf.pop(raw);
+            if (size & 1)
+              cqf.pop(raw);
+            else
+              cqf.pop();
             --size;
             out_val += 10;
 
