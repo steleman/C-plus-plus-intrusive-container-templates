@@ -237,6 +237,15 @@ class circ_que_back
     // Push next element, without initializing it.
     void push(raw_t) { push_(cq.produce_next_in()); }
 
+     // Construct the next element to push.
+    template<typename ... args_t>
+    void init(args_t && ... args)
+      {
+        unsigned ni = cq.produce_next_in();
+
+        new(&cq[ni]) elem_t(std::forward<args_t>(args)...);
+      }
+
      // Construct the next element to push and then push it.
     template<typename ... args_t>
     void push(args_t && ... args)

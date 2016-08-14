@@ -83,13 +83,22 @@ struct One_test
 
         for (unsigned i = 0; i < push; ++i)
           {
-            if (size & 1)
+            switch (size % 3)
               {
+              case 0:
                 cqb() = in_val;
                 cqb.push(raw);
+                break;
+
+              case 1:
+                cqb.init(in_val);
+                cqb.push(raw);
+                break;
+
+              case 2:
+                cqb.push(in_val);
+                break;
               }
-            else
-              cqb.push(in_val);
             ++size;
 
             sane();
