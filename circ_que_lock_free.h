@@ -1,0 +1,77 @@
+/*
+Copyright (c) 2016 Walter William Karas
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+// Include once.
+#ifndef ABSTRACT_CONTAINER_CIRC_QUE_LOCK_FREE_H_
+#define ABSTRACT_CONTAINER_CIRC_QUE_LOCK_FREE_H_
+
+#include <atomic>
+
+#include "circ_que.h"
+
+namespace abstract_container
+{
+
+// Abstractor for instantiation of circ_que for use by two threads, one
+// that does (all) pushes and one that does (all) pops.  Neither
+// thread is blocked.  index_t is an unsigned integral type large enough
+// to hold values up to max_num_elems.  atomic<index_t> must exist, and
+// should be lock-free.
+//
+template <
+  typename elem_t_, unsigned max_num_elems_, typename index_t = unsigned>
+class circ_que_abs_lock_free
+  {
+  protected:
+
+    typedef elem_t_ elem_t;
+
+    static const unsigned max_num_elems = max_num_elems_;
+
+    std::atomic<index_t> front, next_in;
+
+    circ_que_abs_lock_free() : front(0), next_in(0) { }
+
+    unsigned produce_front() const
+      { return(front.load(std::memory_order_acquire)); }
+    unsigned consume_front() const
+      { return(front.load(std::memory_order_relaxed)); }
+
+    void consume_front(unsigned f)
+      { front.store(f, std::memory_order_release); }
+
+    unsigned produce_next_in() const
+      { return(next_in.load(std::memory_order_relaxed)); }
+    unsigned consume_next_in() const
+      { return(next_in.load(std::memory_order_acquire)); }
+
+    void produce_next_in(unsigned ni)
+      { next_in.store(ni, std::memory_order_release); }
+
+    void end_full_wait() { }
+    void end_empty_wait() { }
+  };
+
+template <typename elem_t, unsigned max_num_elems, typename index_t = unsigned>
+using circ_que_lock_free =
+  circ_que<circ_que_abs_lock_free<elem_t, max_num_elems, index_t> >;
+
+} // end namespace abstract_container
+
+#endif /* Include once */
