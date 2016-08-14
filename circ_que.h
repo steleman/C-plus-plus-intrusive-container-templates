@@ -98,13 +98,13 @@ class circ_que : protected abstractor
 
     static const unsigned max_size = abstractor::max_num_elems;
 
-  private:
+    typedef typename abstractor::elem_t elem_t;
+
+  protected:
 
     static const unsigned dimension = max_size + 1;
 
     typedef circ_que cq_t;
-
-    typedef typename abstractor::elem_t elem_t;
 
     static const unsigned align_size =
       ((sizeof(elem_t) + alignof(elem_t) + 1) / alignof(elem_t))
@@ -146,6 +146,7 @@ class circ_que_front
     circ_que_front(cq_t &cq_) : cq(cq_) { }
 
     // Returns number of elements currently in queue.
+    //
     unsigned size() const
       {
         unsigned ni = cq.consume_next_in();
@@ -166,18 +167,24 @@ class circ_que_front
       }
 
     // Returns element currently at front of queue.
+    //
     const elem_t & operator () () const
       { return(cq[cq.consume_front()]); }
 
     // Look ahead from front to successive elements in queue.  index
     // must be less than size().
+    //
     const elem_t & operator () (unsigned index) const
       { return(cq[(cq.consume_front() + index) % cq_t::dimension]); }
 
+    // Warning:  doing a pop when the queue is empty will corrupt its state.
+
     // Pop (discard) front element, without calling ~elem_t().
+    //
     void pop(raw_t) { pop_(cq.consume_front()); }
 
     // Pop (discard) front element.
+    //
     void pop()
       {
         unsigned f = cq.consume_front();
@@ -215,6 +222,7 @@ class circ_que_back
     circ_que_back(cq_t &cq_) : cq(cq_) { }
 
     // Returns number of elements currently in queue.
+    //
     unsigned size() const
       {
         unsigned ni = cq.produce_next_in();
@@ -231,13 +239,14 @@ class circ_que_back
       }
 
     // Return reference to next element to push (which has not been
-    // initialized).
+    // initialized).  Warning:  do not call this when the queue is
+    // full.
+    //
     elem_t & operator () () { return(cq[cq.produce_next_in()]); }
 
-    // Push next element, without initializing it.
-    void push(raw_t) { push_(cq.produce_next_in()); }
-
-     // Construct the next element to push.
+     // Construct the next element to push.  Warning:  do not call this
+     // when the queue is full.
+     //
     template<typename ... args_t>
     void init(args_t && ... args)
       {
@@ -246,7 +255,14 @@ class circ_que_back
         new(&cq[ni]) elem_t(std::forward<args_t>(args)...);
       }
 
-     // Construct the next element to push and then push it.
+    // Warning:  doing a push when the queue is full will corrupt its state.
+
+    // Push next element, without initializing it.
+    //
+    void push(raw_t) { push_(cq.produce_next_in()); }
+
+    // Construct the next element to push and then push it.
+    //
     template<typename ... args_t>
     void push(args_t && ... args)
       {
@@ -305,9 +321,24 @@ class circ_que_abs_basic
   };
 
 // Specialization for single-thread use.
+//
 template <typename elem_t, unsigned max_num_elems, typename index_t = unsigned>
-using basic_circ_que =
-  circ_que<circ_que_abs_basic<elem_t, max_num_elems, index_t> >;
+class basic_circ_que
+  : public circ_que<circ_que_abs_basic<elem_t, max_num_elems, index_t> >
+  {
+  public:
+
+    void purge()
+      {
+        this->front = 0;
+        this->next_in = 0;
+      }
+
+    friend class
+      circ_que_front<basic_circ_que<elem_t, max_num_elems, index_t> >;
+    friend class
+      circ_que_back<basic_circ_que<elem_t, max_num_elems, index_t> >;
+  };
 
 // Note:  This is not an intrusive, non-copying container.  I just
 // put it here rather than putting it in it's own small repo.

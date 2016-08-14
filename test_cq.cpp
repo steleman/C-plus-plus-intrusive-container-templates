@@ -72,7 +72,6 @@ struct One_test
           }
       }
 
-
     One_test(unsigned push, unsigned pop, unsigned push2) : cqf(cq), cqb(cq)
       {
         in_val = 10;
@@ -150,6 +149,26 @@ struct One_test
       }
   };
 
+struct Purge_test
+  {
+    bcq_t cq;
+
+    circ_que_back<bcq_t> cqb;
+
+    Purge_test() : cqb(cq)
+      {
+        cqb.push(1);
+        cqb.push(2);
+        cqb.push(3);
+
+        CHK(cqb.size() == 3);
+
+        cq.purge();
+
+        CHK(cqb.size() == 0);
+      }
+  };
+
 int main()
   {
     for (unsigned push = 0; push <= Max_elems; ++push)
@@ -158,6 +177,8 @@ int main()
           {
             One_test(push, pop, push2);
           }
+
+    Purge_test();
 
     return(0);
   }
