@@ -185,7 +185,7 @@ class modulus_hash<traits, 0>
 // the impl::modulus_hash template.
 //
 template<class traits>
-typename traits::modulus_t modulus_hash(typename traits::key k)
+inline typename traits::modulus_t modulus_hash(typename traits::key k)
   {
     return(impl::modulus_hash<traits, traits::num_key_segments - 1>::val(k));
   }
@@ -195,7 +195,7 @@ typename traits::modulus_t modulus_hash(typename traits::key k)
 // requirements as for the impl::modulus_hash template.
 //
 template<class traits>
-typename traits::modulus_t modulus_hash(
+inline typename traits::modulus_t modulus_hash(
   typename traits::key k, unsigned key_segments_count)
   {
     return(

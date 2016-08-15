@@ -32,7 +32,7 @@ namespace abstract_container
 // that thread as a non-atomic.
 //
 template <typename T>
-T load_non_atomic(const std::atomic<T> &v)
+inline T load_non_atomic(const std::atomic<T> &v)
   {
     if (sizeof(std::atomic<T>) == sizeof(T))
       return(* reinterpret_cast<const T *>(&v));
