@@ -28,6 +28,18 @@ SOFTWARE.
 namespace abstract_container
 {
 
+// If v is only ever written in one thread, it can be safely loaded in
+// that thread as a non-atomic.
+//
+template <typename T>
+T load_non_atomic(const std::atomic<T> &v)
+  {
+    if (sizeof(std::atomic<T>) == sizeof(T))
+      return(* reinterpret_cast<const T *>(&v));
+    else
+      return(v.load(std::memory_order_relaxed));
+  }
+
 // Abstractor for instantiation of circ_que for use by two threads, one
 // that does (all) pushes and one that does (all) pops.  Neither
 // thread is blocked.  index_t is an unsigned integral type large enough
@@ -51,13 +63,13 @@ class circ_que_abs_lock_free
     unsigned produce_front() const
       { return(front.load(std::memory_order_acquire)); }
     unsigned consume_front() const
-      { return(front.load(std::memory_order_relaxed)); }
+      { return(load_non_atomic<index_t>(front)); }
 
     void consume_front(unsigned f)
       { front.store(f, std::memory_order_release); }
 
     unsigned produce_next_in() const
-      { return(next_in.load(std::memory_order_relaxed)); }
+      { return(load_non_atomic<index_t>(next_in)); }
     unsigned consume_next_in() const
       { return(next_in.load(std::memory_order_acquire)); }
 
