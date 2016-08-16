@@ -125,11 +125,9 @@ class circ_que : protected abstractor
 
   public:
 
-    circ_que() = default;
-
-    circ_que(const circ_que &) = default;
-
-    circ_que & operator = (const circ_que &) = default;
+    template<typename ... args_t>
+    circ_que(args_t && ... args)
+      : abstractor(std::forward<args_t>(args)...) { }
 
   }; // end circ_que
 

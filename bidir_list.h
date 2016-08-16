@@ -21,6 +21,8 @@ SOFTWARE.
 #ifndef ABSTRACT_CONTAINER_BIDIR_LIST_H_
 #define ABSTRACT_CONTAINER_BIDIR_LIST_H_
 
+#include <utility>
+
 namespace abstract_container
 {
 
@@ -66,7 +68,9 @@ class bidir_list : protected abstractor
 
     static handle null() { return(abstractor::null()); }
 
-    bidir_list() : head{ null(), null() } { }
+    template<typename ... args_t>
+    bidir_list(args_t && ... args)
+      : abstractor(std::forward<args_t>(args)...), head{ null(), null() } { }
 
     bidir_list(const bidir_list &) = delete;
 

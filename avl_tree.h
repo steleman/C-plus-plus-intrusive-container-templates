@@ -25,13 +25,14 @@ SOFTWARE.
 //
 // See avl_tree.html for interface documentation.
 //
-// Version: 1.6
+// Version: 1.7
 //
 // NOTE: Within the implementation, it's generally more convenient to
 // define the depth of the root node to be 0 (0-based depth) rather than
 // 1 (1-based depth).
 
-#include "bitset"
+#include <bitset>
+#include <utility>
 
 namespace abstract_container
 {
@@ -66,21 +67,21 @@ enum search_type
 //     class ANY_bitref
 //       {
 //       public:
-//         operator bool (void);
+//         operator bool ();
 //         void operator = (bool b);
 //       };
 //
 //     // Does not have to initialize bits.
-//     bset(void);
+//     bset();
 //
 //     // Must return a valid value for index when 0 <= index < max_depth
 //     ANY_bitref operator [] (unsigned index);
 //
 //     // Set all bits to 1.
-//     void set(void);
+//     void set();
 //
 //     // Set all bits to 0.
-//     void reset(void);
+//     void reset();
 //   };
 //
 template <class abstractor, unsigned max_depth, class bset>
@@ -95,20 +96,22 @@ class base_avl_tree
     inline handle insert(handle h);
 
     inline handle search(key k, search_type st = EQUAL);
-    inline handle search_least(void);
-    inline handle search_greatest(void);
+    inline handle search_least();
+    inline handle search_greatest();
 
     inline handle remove(key k);
 
     inline handle subst(handle new_node);
 
-    void purge(void) { abs.root = null(); }
+    void purge() { abs.root = null(); }
 
-    bool is_empty(void) { return(abs.root == null()); }
+    bool is_empty() { return(abs.root == null()); }
 
-    bool read_error(void) { return(abs.read_error()); }
+    bool read_error() { return(abs.read_error()); }
 
-    base_avl_tree(void) { abs.root = null(); }
+    template<typename ... args_t>
+    base_avl_tree(args_t && ... args) : abs(std::forward<args_t>(args)...)
+      { abs.root = null(); }
 
     base_avl_tree(const base_avl_tree &) = delete;
 
@@ -124,7 +127,7 @@ class base_avl_tree
 
 	// Initialize depth to invalid value, to indicate iterator is
 	// invalid.   (Depth is zero-base.)
-	constexpr iter(void) : depth(unsigned(~0)) { }
+	constexpr iter() : depth(unsigned(~0)) { }
 
 	void start_iter(base_avl_tree &tree, key k, search_type st = EQUAL)
 	  {
@@ -233,7 +236,7 @@ class base_avl_tree
 	      }
 	  }
 
-	handle operator * (void)
+	handle operator * ()
 	  {
 	    if (depth == unsigned(~0))
 	      return(null());
@@ -241,7 +244,7 @@ class base_avl_tree
 	    return(depth == 0 ? tree_->abs.root : path_h[depth - 1]);
 	  }
 
-	void operator ++ (void)
+	void operator ++ ()
 	  {
 	    if (depth != unsigned(~0))
 	      {
@@ -280,7 +283,7 @@ class base_avl_tree
 	      }
 	  }
 
-	void operator -- (void)
+	void operator -- ()
 	  {
 	    if (depth != unsigned(~0))
 	      {
@@ -323,7 +326,7 @@ class base_avl_tree
 
 	void operator -- (int) { --(*this); }
 
-	bool read_error(void) { return(tree_->read_error()); }
+	bool read_error() { return(tree_->read_error()); }
 
       protected:
 
@@ -350,7 +353,7 @@ class base_avl_tree
 	  { return(tree_->abs.get_less(h, true)); }
 	handle get_gt(handle h)
 	  { return(tree_->abs.get_greater(h, true)); }
-	handle null(void) { return(tree_->abs.null()); }
+	handle null() { return(tree_->abs.null()); }
 
       };
 
@@ -533,7 +536,7 @@ class base_avl_tree
     int cmp_n_n(handle h1, handle h2)
       { return(abs.compare_node_node(h1, h2)); }
 
-    handle null(void) { return(abs.null()); }
+    handle null() { return(abs.null()); }
 
   private:
 
@@ -836,7 +839,7 @@ inline auto
 
 template <class abstractor, unsigned max_depth, class bset>
 inline auto
-  base_avl_tree<abstractor, max_depth, bset>::search_least(void) -> handle
+  base_avl_tree<abstractor, max_depth, bset>::search_least() -> handle
   {
     handle h = abs.root, parent = null();
 
@@ -856,7 +859,7 @@ inline auto
 
 template <class abstractor, unsigned max_depth, class bset>
 inline auto
-  base_avl_tree<abstractor, max_depth, bset>::search_greatest(void) -> handle
+  base_avl_tree<abstractor, max_depth, bset>::search_greatest() -> handle
   {
     handle h = abs.root, parent = null();
 
@@ -1127,7 +1130,15 @@ inline auto
 template <class abstractor, unsigned max_depth = 32>
 class avl_tree
   : public base_avl_tree<abstractor, max_depth, std::bitset<max_depth> >
-  { };
+  {
+  public:
+
+    typedef base_avl_tree<abstractor, max_depth, std::bitset<max_depth> >
+      base;
+
+    template<typename ... args_t>
+    avl_tree(args_t && ... args) : base(std::forward<args_t>(args)...) { }
+  };
 
 } // end namespace abstract_container
 

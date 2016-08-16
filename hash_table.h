@@ -21,6 +21,8 @@ SOFTWARE.
 #ifndef ABSTRACT_CONTAINER_HASH_TABLE_H_
 #define ABSTRACT_CONTAINER_HASH_TABLE_H_
 
+#include <utility>
+
 #include "list.h"
 
 namespace abstract_container
@@ -69,7 +71,9 @@ class base_hash_table : protected abstractor
     typedef typename abstractor::key key;
     typedef typename list::handle handle;
 
-    base_hash_table() = default;
+    template<typename ... args_t>
+    base_hash_table(args_t && ... args)
+      : abstractor(std::forward<args_t>(args)...) { }
 
     base_hash_table(const base_hash_table &) = delete;
 

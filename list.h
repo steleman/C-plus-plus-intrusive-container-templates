@@ -21,6 +21,8 @@ SOFTWARE.
 #ifndef ABSTRACT_CONTAINER_LIST_H_
 #define ABSTRACT_CONTAINER_LIST_H_
 
+#include <utility>
+
 namespace abstract_container
 {
 
@@ -72,7 +74,9 @@ class list : protected abstractor
 
     static handle null() { return(abstractor::null()); }
 
-    list()
+    template<typename ... args_t>
+    list(args_t && ... args)
+      : abstractor(std::forward<args_t>(args)...)
       {
         head() = null();
 
