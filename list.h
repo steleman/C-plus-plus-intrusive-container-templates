@@ -34,6 +34,14 @@ constexpr bool reverse = false;
 
 #endif
 
+namespace impl
+{
+
+template<int Line>
+void static_error_at_line();
+
+}
+
 /*
 Singly-linked list intrusive container class template
 
@@ -295,7 +303,16 @@ class list : protected abstractor
 
     handle & head() { return(head_[0]); }
 
-    handle & tail() { return(head_[1]); }
+    handle & tail()
+      {
+        if (!store_tail)
+          // Cause link failure.  This detects an internal error (use
+          // of tail whan it's not stored) in the list implementation,
+          // not in the calling code.
+          impl::static_error_at_line<__LINE__>();
+
+        return(head_[1]);
+      }
 
     void link(handle h, handle link_h) { abstractor::link(h, link_h); }
 
