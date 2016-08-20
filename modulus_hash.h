@@ -34,9 +34,9 @@ S(0) + S(1) * (2 ** Sbits) + ... + S(n) * (2 ** (Sbits * n))
 S(i) means segment number i.  Sbits is the bit width of each segment.  The
 modulus hash MH is given by the recusive formula:
 
-MH(n) = ((S(n) * ((2 ** (Sbits * n)) mod M)) + M(n - 1)) mod M
+MH(n) = ((S(n) * ((2 ** (Sbits * n)) mod M)) + MH(n - 1)) mod M
 
-with M(0) = S(0) mod M .  M is the modulus.
+with MH(0) = S(0) mod M .  M is the modulus.
 */
 
 namespace abstract_container
