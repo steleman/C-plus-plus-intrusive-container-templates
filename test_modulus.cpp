@@ -28,6 +28,8 @@ SOFTWARE.
 
 void second_test();
 
+void third_test();
+
 using std::uint8_t;
 using std::uint16_t;
 using std::uint32_t;
@@ -125,6 +127,8 @@ int main()
 
     second_test();
 
+    third_test();
+
     return(0);
   }
 
@@ -143,13 +147,15 @@ struct Tr2
       { return(k >> (Key_segment * key_segment_bits)); }
   };
 
-// Warning: this code will not work on a big-endian CPU.
-// For big endian, hash would have to be calculated over byte-reversed
-// key (0x88887777666655554444333322221111). 
+bool big_endian()
+ { uint16_t v = 0x102; return(* reinterpret_cast<uint8_t *>(&v) == 1); }
+
 void second_test()
   {
     const uint64_t k =
-      (uint64_t(0x1111222233334444) << 32) + 0x5555666677778888;
+      big_endian() ?
+      ((uint64_t(0x8888777766665555) << 32) + 0x4444333322221111) :
+      ((uint64_t(0x1111222233334444) << 32) + 0x5555666677778888);
 
     const unsigned m1 = unsigned(k % Tr2::modulus);
 
@@ -162,4 +168,37 @@ void second_test()
 
     if (m1 != h1) cout << "FAIL 1\n";
     if (m2 != h2) cout << "FAIL 2\n";
+  }
+
+#define REVERSE 0
+
+struct Tr3
+  {
+    typedef uint8_t modulus_t;
+    typedef uint16_t product_t;
+
+    static const unsigned key_segment_bits = 8;
+    static const unsigned num_key_segments = 4;
+    static const modulus_t modulus = 19;
+
+    typedef const uint8_t *key;
+
+    template<unsigned Key_segment> static uint8_t get_segment(key k)
+      { return(k[big_endian() ? (3 - Key_segment) : Key_segment]); }
+  };
+
+const unsigned Per_bin = 100000;
+
+const unsigned Num_keys3 = Tr3::modulus * Per_bin;
+
+unsigned hist3[Tr3::modulus];
+
+void third_test()
+  {
+    for (uint32_t i = 0; i < Num_keys3; ++i)
+      ++hist3[modulus_hash<Tr3>(reinterpret_cast<uint8_t *>(&i))];
+
+    for (unsigned i = 0; i < Tr::modulus; ++i)
+      if (hist3[i] != Per_bin)
+        cout << "3rd TEST ERROR bin " << i << '\n';
   }
